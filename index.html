@@ -152,46 +152,7 @@
 var x,y,z,a,b,c;
     var direction;
     socket.on('accelZ', function(msg) {
-      direction = camera.getWorldDirection();
-      console.log(camera.up),
       
-      a = camera.rotation.x;
-      b = camera.rotation.y;
-      c = camera.rotation.z;
-      
-      x = camera.position.x;
-      y = camera.position.y;
-      z = camera.position.z;
-
-      camera.rotation.x = 0;
-      camera.rotation.y = 0;
-      camera.rotation.z = 0;
-      
-      camera.position.x = 0;
-      camera.position.y = 0;
-      camera.position.z = 0;
-
-      camera.rotation.x += msg/180 * Math.sin(a);
-      camera.rotation.y += msg/180 * Math.cos(a);
-
-      camera.rotation.x += a;
-      camera.rotation.y += b;
-      camera.rotation.z += c;
-      
-      camera.position.x += x;
-      camera.position.y += y;
-      camera.position.z += z;
-
-      //camera.rotation.setRotationFromAxisAngle(camera.up, -msg),
-
-      // var vector = new THREE.Vector3(-msg/180*Math.PI/10,0,0),
-      // vector.applyQuaternion( ),
-      // camera.applyQuaternion(vector),
-
-      //camera.rotation.x -= msg/180*Math.PI/10,
-
-      camera.rotation.z = 0
-
     });
 
     socket.on('height', function(msg){
@@ -209,41 +170,29 @@ var x,y,z,a,b,c;
 
 
 
-    function render(now) {
+function render(now) {
+    // update the picking ray with the camera and mouse position
+    raycaster.setFromCamera( mouse, camera );
+    // calculate objects intersecting the picking ray
+    var intersects = raycaster.intersectObjects( scene.children );
 
-  // update the picking ray with the camera and mouse position
-  raycaster.setFromCamera( mouse, camera );
+    scene.children.forEach(function(item) {
+      item.material.color.set( 0xffffff );
+      item.scale.x = 1;
+      item.scale.y = 1;
 
-  // calculate objects intersecting the picking ray
-  var intersects = raycaster.intersectObjects( scene.children );
+    });
 
-  scene.children.forEach(function(item) {
-    item.material.color.set( 0xffffff );
-    item.scale.x = 1;
-    item.scale.y = 1;
+    for ( var i = 0; i < intersects.length; i++ ) {
+      intersects[ i ].object.material.color.set( 0xff0000 );
+      intersects[ i ].object.scale.x = 2;
+      intersects[ i ].object.scale.y = 2;
 
-  });
-
-  for ( var i = 0; i < intersects.length; i++ ) {
-    intersects[ i ].object.material.color.set( 0xff0000 );
-    intersects[ i ].object.scale.x = 2;
-    intersects[ i ].object.scale.y = 2;
-
-  }
+    }
 
 
-  renderer.render( scene, camera );
+    renderer.render( scene, camera );
 }
-
-
-function sigmoid(t) {
-  return 1/(1+Math.pow(Math.E, -t));
-}
-
-
-
-
-//window.addEventListener( 'mousemove', onMouseMove, false );
 
  //Animation loop of cube
  function animate() {
