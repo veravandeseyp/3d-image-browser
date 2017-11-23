@@ -1,0 +1,155 @@
+<!doctype html>
+<html>
+<head>
+  <title>Socket.IO chat</title>
+  <style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font: 13px Helvetica, Arial; }
+  form { background: #000; padding: 3px; position: fixed; bottom: 0; width: 100%; }
+  form input { border: 0; padding: 10px; width: 90%; margin-right: .5%; }
+  form button { width: 9%; background: rgb(130, 224, 255); border: none; padding: 10px; }
+  #messages { list-style-type: none; margin: 0; padding: 0; }
+  #messages li { padding: 5px 10px; }
+  #messages li:nth-child(odd) { background: #eee; }
+</style>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0"/> <!--320-->
+<link rel="manifest" href="/manifest.json">
+
+</head>
+
+<script src="/socket.io/socket.io.js"></script>
+<script src="https://code.jquery.com/jquery-1.11.1.js"></script>
+<script>
+  $(function () {
+    var socket = io();
+    $('form').submit(function(){
+      socket.emit('chat message', $('#m').val());
+      $('#m').val('');
+      return false;
+    });
+    socket.on('chat message', function(msg){
+      $('#messages').append($('<li>').text(msg));
+    });
+  });
+</script>
+
+<body>
+  <u1 id="square">
+   <script src="http://threejs.org/build/three.min.js"></script>
+   <script>
+    //Mouse Part
+
+    mouse = new THREE.Vector2();
+    accel = new THREE.Vector2();
+
+    touch_pos_start = new THREE.Vector2();
+    touch_arc_dinstance = new THREE.Vector2();
+    //gyro config
+
+    
+
+    var scene = new THREE.Scene();
+    var camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
+
+    var renderer = new THREE.WebGLRenderer();
+    renderer.setSize( window.innerWidth, window.innerHeight );
+    document.body.appendChild( renderer.domElement );
+    
+
+    //Cube
+    var geometry = new THREE.BoxGeometry( 1, 1, 1 );
+    var material = new THREE.MeshBasicMaterial( { color: 0x5bb8c8 } );
+    var cube = new THREE.Mesh( geometry, material );
+
+    scene.add( cube );
+
+    camera.position.z = 5;
+
+    document.addEventListener("MozOrientation",    handleOrientationEvent, true);
+    window.addEventListener("deviceorientation", handleOrientationEvent, true);
+    window.addEventListener('touchstart', function(event) {
+      event.preventDefault(); //Prevent Scrolling
+      var touch = event.touches[0];
+      mouse.x = (touch.clientX / window.innerWidth) * 2 - 1;
+      mouse.y = -(touch.clientY / window.innerHeight) * 2 + 1;
+      touch_pos_start.x = mouse.x;
+      touch_pos_start.y = mouse.y;
+
+  // the user touched the screen!
+},{passive: false});
+    window.addEventListener("touchmove", function(event) {
+      var text;
+      event.preventDefault();
+      var touch = event.touches[0];
+      mouse.x = (touch.clientX / window.innerWidth) * 2 - 1;
+      mouse.y = -(touch.clientY / window.innerHeight) * 2 + 1;
+      touch_arc_dinstance.x = mouse.x - touch_pos_start.x;
+      touch_arc_dinstance.y = mouse.y - touch_pos_start.y;
+      var hue = touch_arc_dinstance.y/2*115;
+      if(hue < 0 ) { hue = 0;}
+      text = "hsl("+hue+", 100%, 50%)";
+      scene.background = new THREE.Color(text);
+      socket.emit('height', touch_arc_dinstance.y);
+
+    },{passive: false});
+    //mouse listener
+    document.addEventListener('mousemove', onDocumentMouseMove, false);
+    function onDocumentMouseMove(event) {
+      event.preventDefault();
+      mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+      mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+    }
+
+    var socket = io();
+    function handleOrientationEvent(event) {
+      socket.emit('accelX', event.alpha);
+      socket.emit('accelY', event.beta);
+      socket.emit('accelZ', event.gamma);
+
+
+      accel.z = event.alpha;
+      accel.x = event.beta;
+      accel.y = event.gamma;
+    }
+
+    socket.on('accelX', function(msg){
+      cube.rotation.x = msg/180*Math.PI
+    });
+    socket.on('accelY', function(msg){
+      cube.rotation.y = msg/180*Math.PI
+    });
+    socket.on('accelZ', function(msg){
+      cube.rotation.z = msg/180*Math.PI
+    });
+
+
+
+    //Animation loop of cube
+    function animate() {
+      requestAnimationFrame( animate );
+
+      // cube.rotation.x = accel.x/180*Math.PI;
+      // cube.rotation.y = accel.y/180*Math.PI;
+      // cube.rotation.z = accel.z/180*Math.PI;
+
+      //cube.rotation.x =  mouse.y*Math.PI;
+      //cube.rotation.y =  -mouse.x*Math.PI;
+      renderer.render( scene, camera );
+    }
+    animate();
+
+    //Send the data
+    
+
+
+  </script>
+</u1>
+<ul id="messages"></ul>
+<form action="">
+  <input id="m" autocomplete="off" /><button>Send</button>
+</form>
+</body>
+
+</html>
