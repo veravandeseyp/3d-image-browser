@@ -39,18 +39,17 @@ $(function () {
     mouse = new THREE.Vector2();
     accel = new THREE.Vector2();
     //gyro config
-    var params;
     var scene = new THREE.Scene();
     var camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
     var renderer = new THREE.WebGLRenderer({antialias:true});
     renderer.setClearColor(0x000000, 1);
     renderer.setSize( window.innerWidth, window.innerHeight );
     document.body.appendChild( renderer.domElement );
+
     var ambientLight = new THREE.AmbientLight(0xffffff, 1.0);
     scene.add(ambientLight);
     var cube;
     //Cube
-    var cubes = [];
     var sprite = [];
 
 
@@ -77,28 +76,22 @@ $(function () {
           } else {
             //var particle = new THREE.Vector3(Math.random() * 10-5 + x_offset, Math.random() * 10-5 + y_offset, Math.random() * 10-5 + z_offset);
             //particles.vertices.push(particle);
-            //console.log("then this");
-            //myTexture
+
             var tempTex = map.clone();
             tempTex.uuid = map.uuid;
             tempTex.version = map.version;
             tempTex.needsUpdate = true;
             var height = Math.floor((8192/150));
-            // tempTex.__webglTexture = myTexture.__webglTexture
-            // tempTex.__webglInit = true;
-            // tempTex.repeat.set(1/64, 1/64);
+
             tempTex.wrapS = tempTex.wrapT = THREE.RepeatWrapping;
 
 
             tempTex.offset.x = 1/64*j;
             tempTex.offset.y = -1/(height+1)*(i+1);
 
-            // myTexture.offset.x = 1/63*0;//j;
-            // myTexture.offset.y = -1/63*1;//(i+1);
             var material = new THREE.SpriteMaterial( {map: tempTex, color: 0xffffff, fog: true } );
             sprite[sprite.length-1] = new THREE.Sprite(material);
-            sprite[sprite.length-1].scale.set(1,1,1);
-            //console.log(standardMaterial);
+            sprite[sprite.length-1].scale.set(1,150/124,1);
 
             sprite[sprite.length-1].position.x = Math.random()*10-5 + x_offset;
             sprite[sprite.length-1].position.z = Math.random()*10-5 + z_offset;
@@ -135,7 +128,6 @@ $(function () {
 
 
     //This is the tilting forwards motion
-    var x,y,z,a,b,c;
     var direction;
     socket.on('accelZ', function(msg) {
 
@@ -163,12 +155,12 @@ $(function () {
       // calculate objects intersecting the picking ray
       // var intersects = raycaster.intersectObjects( scene.children );
       //
-      // // scene.children.forEach(function(item) {
-      // //   item.material.color.set( 0xffffff );
-      // //   item.scale.x = 1;
-      // //   item.scale.y = 1;
-      // //
-      // // });
+      // scene.children.forEach(function(item) {
+      //   item.material.color.set( 0xffffff );
+      //   item.scale.x = 1;
+      //   item.scale.y = 1;
+      //
+      // });
       //
       // for ( var i = 0; i < intersects.length; i++ ) {
       //   intersects[ i ].object.material.color.set( 0xff0000 );
