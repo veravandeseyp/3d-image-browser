@@ -61,6 +61,7 @@
   	var clock = new THREE.Clock();
   	var blocker = document.getElementById( 'blocker' );
   	var instructions = document.getElementById( 'instructions' );
+
   	function init() {
   		camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 1, 1000000 );
   		scene = new THREE.Scene();
@@ -83,6 +84,9 @@
         // create the custom shader
         var textureLoader = new THREE.TextureLoader();
         var imagePreviewTexture = textureLoader.load( '/im1.jpg' );
+
+				var imagePreviewTexture = textureLoader.load( '/master.png' );
+
         imagePreviewTexture.minFilter = THREE.LinearMipMapLinearFilter;
         imagePreviewTexture.magFilter = THREE.LinearFilter;
         var pointShaderMaterial = new THREE.ShaderMaterial( {

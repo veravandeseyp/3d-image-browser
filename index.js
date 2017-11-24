@@ -16,6 +16,7 @@
 		app.get('/wall', function(req, res){
 			res.sendFile(__dirname + '/wall.html');
 		});
+
 		io.on('connection', function(socket){
 
 			console.log('a user connected');
@@ -47,5 +48,3 @@
 		http.listen(3000, function(){
 			console.log('listening on *:3000');
 		});
-
-
