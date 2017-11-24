@@ -16,121 +16,100 @@
 <script src="/socket.io/socket.io.js"></script>
 <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
 <script>
-  $(function () {
-    var socket = io();
-    $('form').submit(function(){
-      socket.emit('chat message', $('#m').val());
-      $('#m').val('');
-      return false;
-    });
-    socket.on('chat message', function(msg){
-      $('#messages').append($('<li>').text(msg));
-    });
+$(function () {
+  var socket = io();
+  $('form').submit(function(){
+    socket.emit('chat message', $('#m').val());
+    $('#m').val('');
+    return false;
   });
+  socket.on('chat message', function(msg){
+    $('#messages').append($('<li>').text(msg));
+  });
+});
 </script>
 <body>
   <u1 id="square">
-   <script src="http://threejs.org/build/three.min.js"></script>
-   <script src="/OrbitControls.js"></script>
-   <script src="/FlyControls.js"></script>
-   <script>
+    <script src="/three.js"></script>
+    <script src="/OrbitControls.js"></script>
+    <script src="/FlyControls.js"></script>
+    <script>
     //Mouse Part
 
     mouse = new THREE.Vector2();
     accel = new THREE.Vector2();
     //gyro config
-
     var scene = new THREE.Scene();
     var camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
-    var renderer = new THREE.WebGLRenderer();
+    var renderer = new THREE.WebGLRenderer({antialias:true});
+    renderer.setClearColor(0x000000, 1);
     renderer.setSize( window.innerWidth, window.innerHeight );
     document.body.appendChild( renderer.domElement );
 
+    var ambientLight = new THREE.AmbientLight(0xffffff, 1.0);
+    scene.add(ambientLight);
     var cube;
     //Cube
-    var cubes = [];
     var sprite = [];
 
-   
+
 
     javascript:(function(){var script=document.createElement('script');script.onload=function(){var stats=new Stats();document.body.appendChild(stats.dom);requestAnimationFrame(function loop(){stats.update();requestAnimationFrame(loop)});};script.src='//rawgit.com/mrdoob/stats.js/master/build/stats.min.js';document.head.appendChild(script);})()
 
-    for(var j = 0; j < 25; j++) {
-      var x_offset = Math.random()*50-25;
-      var y_offset = Math.random()*50-25;
-      var z_offset = Math.random()*50-25;
-      for (var i = 0; i < 10; i++) {
-       var loader = new THREE.TextureLoader();
-       var str1 = '/im';
-       var str2 = i+1;
-       var str3 = '.jpg';
-       var str1 = str1.concat(str2, str3);
+    console.log("Reading Texture");
+    var myTexture = new THREE.TextureLoader()
 
-       var map = new THREE.TextureLoader().load( str1);
-       map.minFilter = THREE.LinearFilter;
-       var material = new THREE.SpriteMaterial( { map: map, color: 0xffffff, fog: true } );
-       sprite[i+(j*10)] = new THREE.Sprite( material );
+    var particles = new THREE.Geometry;
+    myTexture = myTexture.load('master.png', function(map) {
+      map.repeat.set(1/64, 1/64);
+      map.wrapS = map.wrapT = THREE.RepeatWrapping;
 
+      for(var i = 0; i < 64; i++) {
+        var x_offset = Math.random()*50-25;
+        var y_offset = Math.random()*50-25;
+        var z_offset = Math.random()*50-25;
 
-       scene.add( sprite[i+(j*10)] );
-       sprite[i+(j*10)].position.x = Math.random()*10-5 + x_offset;
-       sprite[i+(j*10)].position.z = Math.random()*10-5 + z_offset;
-       sprite[i+(j*10)].position.y = Math.random()*10-5 + y_offset;
+        for(var j = 0; j < 64; j++) {
+          if(i == 17 && j == 38) {
+            //console.log("this actually fired")
+            break;
+          } else {
+            //var particle = new THREE.Vector3(Math.random() * 10-5 + x_offset, Math.random() * 10-5 + y_offset, Math.random() * 10-5 + z_offset);
+            //particles.vertices.push(particle);
 
+            var tempTex = map.clone();
+            tempTex.uuid = map.uuid;
+            tempTex.version = map.version;
+            tempTex.needsUpdate = true;
+            var height = Math.floor((8192/150));
 
-        // For efficiency
-
-
-       /* //Adds highlighting squares
-       material = new THREE.SpriteMaterial( {color: 0x00ff00, fog: true , side: THREE.BackSide} );
-       var newsprite = new THREE.Sprite(material);
-       newsprite.scale.multiplyScalar(1.1);
-       newsprite.position.x = sprite[i+(j*10)].position.x;
-       newsprite.position.y = sprite[i+(j*10)].position.y;
-       newsprite.position.z = sprite[i+(j*10)].position.z;
-
-       scene.add(newsprite);
-
-     // loader.load( str1, function ( texture ) {
-      */
-     //   // var geometry = new THREE.BoxGeometry( 0.5 , 0.5, 0.01 );
-     //   // var material = new THREE.MeshBasicMaterial( { map: texture, color: 0xBC997A } );
-     //   // cubes[i] = new THREE.Mesh( geometry, material );
-     //   // cubes[i].position.x = Math.random()*10-5;
-     //   // cubes[i].position.z = Math.random()*10-5;
-     //   // cubes[i].position.y = Math.random()*10-5;
-     //   // scene.add( cubes[i] );
-     // } );
-   }
- }
+            tempTex.wrapS = tempTex.wrapT = THREE.RepeatWrapping;
 
 
+            tempTex.offset.x = 1/64*j;
+            tempTex.offset.y = -1/(height+1)*(i+1);
 
+            var material = new THREE.SpriteMaterial( {map: tempTex, color: 0xffffff, fog: true } );
+            sprite[sprite.length-1] = new THREE.Sprite(material);
+            sprite[sprite.length-1].scale.set(1,150/124,1);
 
+            sprite[sprite.length-1].position.x = Math.random()*10-5 + x_offset;
+            sprite[sprite.length-1].position.z = Math.random()*10-5 + z_offset;
+            sprite[sprite.length-1].position.y = Math.random()*10-5 + y_offset;
+            scene.add( sprite[sprite.length-1] );
 
- var loader = new THREE.TextureLoader();
- loader.load( '/image.png', function ( texture ) {
-   var a = texture.innerHeight;
-   var b = texture.innerWidth;
-   var geometry = new THREE.BoxGeometry( b , a, 1 );
-   var material = new THREE.MeshBasicMaterial( { map: texture, color: 0xBC997A } );
-   cube = new THREE.Mesh( geometry, material );
-   scene.add( cube );
+          }
 
- } );
+        }
+      }
+    });
 
-
-    // var geometry = new THREE.BoxGeometry( 1, 1, 1 );
-    // var material = new THREE.MeshBasicMaterial( { color: 0x5bb8c8 } );
-    // var cube = new THREE.Mesh( geometry, material );
-
-    // scene.add( cube );
 
     camera.position.z = 5;
     var socket = io();
 
     //This is twisting motion
-    
+
     // socket.on('accelX', function(msg){
     //   cube.rotation.x = msg/180*Math.PI,
     //   camera.rotation.x = msg/180*Math.PI
@@ -140,7 +119,7 @@
     //this is left to right
 
     socket.on('accelY', function(msg){
-      cube.rotation.y = msg/180*Math.PI,
+      //cube.rotation.y = msg/180*Math.PI,
       //camera.rotateY(-msg/180*Math.PI/10),
       camera.rotation.y -= msg/180*Math.PI/10,
       camera.rotation.z = 0
@@ -149,53 +128,13 @@
 
 
     //This is the tilting forwards motion
-var x,y,z,a,b,c;
     var direction;
     socket.on('accelZ', function(msg) {
-      direction = camera.getWorldDirection();
-      console.log(camera.up),
-      
-      a = camera.rotation.x;
-      b = camera.rotation.y;
-      c = camera.rotation.z;
-      
-      x = camera.position.x;
-      y = camera.position.y;
-      z = camera.position.z;
-
-      camera.rotation.x = 0;
-      camera.rotation.y = 0;
-      camera.rotation.z = 0;
-      
-      camera.position.x = 0;
-      camera.position.y = 0;
-      camera.position.z = 0;
-
-      camera.rotation.x += msg/180 * Math.sin(a);
-      camera.rotation.y += msg/180 * Math.cos(a);
-
-      camera.rotation.x += a;
-      camera.rotation.y += b;
-      camera.rotation.z += c;
-      
-      camera.position.x += x;
-      camera.position.y += y;
-      camera.position.z += z;
-
-      //camera.rotation.setRotationFromAxisAngle(camera.up, -msg),
-
-      // var vector = new THREE.Vector3(-msg/180*Math.PI/10,0,0),
-      // vector.applyQuaternion( ),
-      // camera.applyQuaternion(vector),
-
-      //camera.rotation.x -= msg/180*Math.PI/10,
-
-      camera.rotation.z = 0
 
     });
 
     socket.on('height', function(msg){
-      cube.rotation.z = msg/180*Math.PI*1.5,
+      //cube.rotation.z = msg/180*Math.PI*1.5,
       //camera.position.z += msg/180,
       direction = camera.getWorldDirection(),
       camera.position.add( direction.multiplyScalar(-msg*5) ),
@@ -209,62 +148,48 @@ var x,y,z,a,b,c;
 
 
 
-    function render(now) {
+    function render() {
 
-  // update the picking ray with the camera and mouse position
-  raycaster.setFromCamera( mouse, camera );
-
-  // calculate objects intersecting the picking ray
-  var intersects = raycaster.intersectObjects( scene.children );
-
-  scene.children.forEach(function(item) {
-    item.material.color.set( 0xffffff );
-    item.scale.x = 1;
-    item.scale.y = 1;
-
-  });
-
-  for ( var i = 0; i < intersects.length; i++ ) {
-    intersects[ i ].object.material.color.set( 0xff0000 );
-    intersects[ i ].object.scale.x = 2;
-    intersects[ i ].object.scale.y = 2;
-
-  }
-
-
-  renderer.render( scene, camera );
-}
+      // update the picking ray with the camera and mouse position
+      raycaster.setFromCamera( mouse, camera );
+      // calculate objects intersecting the picking ray
+      // var intersects = raycaster.intersectObjects( scene.children );
+      //
+      // scene.children.forEach(function(item) {
+      //   item.material.color.set( 0xffffff );
+      //   item.scale.x = 1;
+      //   item.scale.y = 1;
+      //
+      // });
+      //
+      // for ( var i = 0; i < intersects.length; i++ ) {
+      //   intersects[ i ].object.material.color.set( 0xff0000 );
+      //   intersects[ i ].object.scale.x = 2;
+      //   intersects[ i ].object.scale.y = 2;
+      //
+      // }
 
 
-function sigmoid(t) {
-  return 1/(1+Math.pow(Math.E, -t));
-}
+      renderer.render( scene, camera );
+    }
 
+    //Animation loop of cube
+    function animate() {
+      requestAnimationFrame( animate );
+      render();
 
+    }
+    animate();
 
-
-//window.addEventListener( 'mousemove', onMouseMove, false );
-
- //Animation loop of cube
- function animate() {
-  requestAnimationFrame( animate );
-  window.requestAnimationFrame(render);
-  raycaster.setFromCamera( mouse, camera );
-
-  renderer.render( scene, camera );
-
-}
-animate();
-
-//Send the data
+    //Send the data
 
 
 
-</script>
-</u1>
-<ul id="messages"></ul>
-<form action="">
-  <input id="m" autocomplete="off" /><button>Send</button>
-</form>
+    </script>
+  </u1>
+  <ul id="messages"></ul>
+  <form action="">
+    <input id="m" autocomplete="off" /><button>Send</button>
+  </form>
 </body>
 </html>
