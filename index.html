@@ -31,6 +31,7 @@ $(function () {
 <body>
   <u1 id="square">
     <script src="/three.js"></script>
+    <script src="/TypedArrayUtils.js"></script>
     <script src="/OrbitControls.js"></script>
     <script src="/FlyControls.js"></script>
     <script>
@@ -46,20 +47,31 @@ $(function () {
     renderer.setSize( window.innerWidth, window.innerHeight );
     document.body.appendChild( renderer.domElement );
 
+    function onWindowResize() {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize( window.innerWidth, window.innerHeight );
+      controls.handleResize();
+    }
+
     var ambientLight = new THREE.AmbientLight(0xffffff, 1.0);
     scene.add(ambientLight);
     var cube;
     //Cube
     var sprite = [];
-
-
+    positions = new Float32Array( 64 * 64 * 3 );
+    var kdtree;
+    var clock = new THREE.Clock();
+    var maxDistance = Math.pow( 120, 2 );
 
     javascript:(function(){var script=document.createElement('script');script.onload=function(){var stats=new Stats();document.body.appendChild(stats.dom);requestAnimationFrame(function loop(){stats.update();requestAnimationFrame(loop)});};script.src='//rawgit.com/mrdoob/stats.js/master/build/stats.min.js';document.head.appendChild(script);})()
 
     console.log("Reading Texture");
     var myTexture = new THREE.TextureLoader()
 
-    var particles = new THREE.Geometry;
+    var distanceFunction = function ( a, b ) {
+      return Math.pow( a[ 0 ] - b [0 ], 2 ) +  Math.pow( a[ 1 ] - b[ 1 ], 2 ) +  Math.pow( a[ 2 ] - b[ 2 ], 2 );
+    };
     myTexture = myTexture.load('master.png', function(map) {
       map.repeat.set(1/64, 1/64);
       map.wrapS = map.wrapT = THREE.RepeatWrapping;
@@ -71,11 +83,9 @@ $(function () {
 
         for(var j = 0; j < 64; j++) {
           if(i == 17 && j == 38) {
-            //console.log("this actually fired")
+            //This stopped overloading images
             break;
           } else {
-            //var particle = new THREE.Vector3(Math.random() * 10-5 + x_offset, Math.random() * 10-5 + y_offset, Math.random() * 10-5 + z_offset);
-            //particles.vertices.push(particle);
 
             var tempTex = map.clone();
             tempTex.uuid = map.uuid;
@@ -93,16 +103,30 @@ $(function () {
             sprite[sprite.length-1] = new THREE.Sprite(material);
             sprite[sprite.length-1].scale.set(1,150/124,1);
 
-            sprite[sprite.length-1].position.x = Math.random()*10-5 + x_offset;
+
+
             sprite[sprite.length-1].position.z = Math.random()*10-5 + z_offset;
-            sprite[sprite.length-1].position.y = Math.random()*10-5 + y_offset;
+
+
+            positions[(sprite.length-1)*3] = sprite[sprite.length-1].position.x = Math.random()*10-5 + x_offset;
+            positions[(sprite.length-1)*3+1] = sprite[sprite.length-1].position.y = Math.random()*10-5 + y_offset;
+            positions[(sprite.length-1)*3+2] = sprite[sprite.length-1].position.z = Math.random()*10-5 + z_offset;
+
             scene.add( sprite[sprite.length-1] );
 
           }
 
         }
       }
+
+
     });
+
+    console.log("Building tree");
+    var measureStart = new Date().getTime();
+    kdtree = new THREE.TypedArrayUtils.Kdtree( positions, distanceFunction, 3 );
+    console.log( 'TIME building kdtree', new Date().getTime() - measureStart );
+
 
 
     camera.position.z = 5;
@@ -168,24 +192,42 @@ $(function () {
       //   intersects[ i ].object.scale.y = 2;
       //
       // }
-
-
       renderer.render( scene, camera );
     }
 
     //Animation loop of cube
     function animate() {
+      displayNearest( camera.position );
+
       requestAnimationFrame( animate );
       render();
 
     }
     animate();
 
-    //Send the data
+    function displayNearest( position ) {
+var imagePositionsInRange = kdtree.nearest( [ 0, 0, 0 ], 100, maxDistance );
+      //var imagePositionsInRange = kdtree.nearest( [ position.x, position.y, position.z ], 100, maxDistance );
+      var _frustum = new THREE.Frustum();
+      var _projScreenMatrix = new THREE.Matrix4();
+      _projScreenMatrix.multiplyMatrices( camera.projectionMatrix, camera.matrixWorldInverse );
+      _frustum.setFromMatrix( _projScreenMatrix );
+      for ( var i = 0, il = imagePositionsInRange.length; i < il; i ++ ) {
+        var object = imagePositionsInRange[ i ];
+        //object.material.color.set(0xff0000);
+        /*
+        var objectPoint = new THREE.Vector3().fromArray( object[ 0 ].obj );
+        if ( _frustum.containsPoint( objectPoint ) ) {
+          var objectIndex = object[ 0 ].pos;
+          // set the alpha according to distance
+          alphas[ objectIndex ] = 1.0 / maxDistance * object[ 1 ];
+          // update the attribute
+          _particleGeom.attributes.alpha.needsUpdate = true;
+        }*/
+      }
+    }
 
-
-
-    </script>
+  </script>
   </u1>
   <ul id="messages"></ul>
   <form action="">
