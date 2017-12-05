@@ -21,23 +21,23 @@
 <script src="/socket.io/socket.io.js"></script>
 <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
 <script>
-$(function () {
-  var socket = io();
-  $('form').submit(function(){
-    socket.emit('chat message', $('#m').val());
-    $('#m').val('');
-    return false;
+  $(function () {
+    var socket = io();
+    $('form').submit(function(){
+      socket.emit('chat message', $('#m').val());
+      $('#m').val('');
+      return false;
+    });
+    socket.on('chat message', function(msg){
+      $('#messages').append($('<li>').text(msg));
+    });
   });
-  socket.on('chat message', function(msg){
-    $('#messages').append($('<li>').text(msg));
-  });
-});
 </script>
 
 <body>
   <u1 id="square">
-    <script src="http://threejs.org/build/three.min.js"></script>
-    <script>
+   <script src="http://threejs.org/build/three.min.js"></script>
+   <script>
     //Mouse Part
 
     mouse = new THREE.Vector2();
@@ -47,7 +47,7 @@ $(function () {
     touch_arc_dinstance = new THREE.Vector2();
     //gyro config
 
-
+    
 
     var scene = new THREE.Scene();
     var camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
@@ -55,7 +55,7 @@ $(function () {
     var renderer = new THREE.WebGLRenderer();
     renderer.setSize( window.innerWidth, window.innerHeight );
     document.body.appendChild( renderer.domElement );
-
+    
 
     //Cube
     var geometry = new THREE.BoxGeometry( 1, 1, 1 );
@@ -76,18 +76,10 @@ $(function () {
       touch_pos_start.x = mouse.x;
       touch_pos_start.y = mouse.y;
 
-      // the user touched the screen!
-    },{passive: false});
-    window.addEventListener('touchend touchcancel mouseup', function(event) {
-      event.preventDefault();
-      socket.emit("height", "asdasdsad");
-      for(var i = 0; i < 20; i++) socket.emit('height', 0);
-
-    },{passive: false});
-        
+  // the user touched the screen!
+},{passive: false});
     window.addEventListener("touchmove", function(event) {
       var text;
-
       event.preventDefault();
       var touch = event.touches[0];
       mouse.x = (touch.clientX / window.innerWidth) * 2 - 1;
@@ -98,18 +90,17 @@ $(function () {
       if(hue < 0 ) { hue = 0;}
       text = "hsl("+hue+", 100%, 50%)";
       scene.background = new THREE.Color(text);
-      socket.emit('height', mouse.y);
-      //socket.emit('height', touch_arc_dinstance.y);
+      socket.emit('height', touch_arc_dinstance.y);
 
     },{passive: false});
     //mouse listener
-    // document.addEventListener('mousemove', onDocumentMouseMove, false);
-    // function onDocumentMouseMove(event) {
-    //   event.preventDefault();
-    //   mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-    //   mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
-    //
-    // }
+    document.addEventListener('mousemove', onDocumentMouseMove, false);
+    function onDocumentMouseMove(event) {
+      event.preventDefault();
+      mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+      mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+    }
 
     var socket = io();
     function handleOrientationEvent(event) {
@@ -150,7 +141,7 @@ $(function () {
     animate();
 
     //Send the data
-
+    
 
 
   </script>

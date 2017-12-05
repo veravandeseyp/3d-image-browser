@@ -1,44 +1,47 @@
 <!doctype html>
 <html>
+<head>
+  <title>Socket.IO chat</title>
+  <style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font: 13px Helvetica, Arial; }
+  form { background: #000; padding: 3px; position: fixed; bottom: 0; width: 100%; }
+  form input { border: 0; padding: 10px; width: 90%; margin-right: .5%; }
+  form button { width: 9%; background: rgb(130, 224, 255); border: none; padding: 10px; }
+  #messages { list-style-type: none; margin: 0; padding: 0; }
+  #messages li { padding: 5px 10px; }
+  #messages li:nth-child(odd) { background: #eee; }
+</style>
+</head>
 <script src="/socket.io/socket.io.js"></script>
 <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
 <script>
-// $(function () {
-//   var socket = io();
-//   $('form').submit(function(){
-//     socket.emit('chat message', $('#m').val());
-//     $('#m').val('');
-//     return false;
-//   });
-//   socket.on('chat message', function(msg){
-//     $('#messages').append($('<li>').text(msg));
-//   });
-// });
+$(function () {
+  var socket = io();
+  $('form').submit(function(){
+    socket.emit('chat message', $('#m').val());
+    $('#m').val('');
+    return false;
+  });
+  socket.on('chat message', function(msg){
+    $('#messages').append($('<li>').text(msg));
+  });
+});
 </script>
 <body>
   <u1 id="square">
     <script src="/three.js"></script>
     <script src="/TypedArrayUtils.js"></script>
     <script src="/OrbitControls.js"></script>
-    <script src="FirstPersonControls.js"></script>
+    <script src="/FlyControls.js"></script>
     <script>
     //Mouse Part
-    document.body.addEventListener("keydown", function() {
-  THREEx.FullScreen.request();
-}, false);
-    var socket = io();
+
     mouse = new THREE.Vector2();
     accel = new THREE.Vector2();
-    var controls;
-
     //gyro config
     var scene = new THREE.Scene();
     var camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
-    controls = new THREE.FirstPersonControls( camera );
-
-    controls.movementSpeed = 100;
-    controls.lookSpeed = 0.1;
-
     var renderer = new THREE.WebGLRenderer({antialias:true});
     renderer.setClearColor(0x000000, 1);
     renderer.setSize( window.innerWidth, window.innerHeight );
@@ -56,7 +59,7 @@
     var cube;
     //Cube
     var sprite = [];
-    positions = new Float32Array( 32 * 32 * 3 );
+    positions = new Float32Array( 64 * 64 * 3 );
     var kdtree;
     var clock = new THREE.Clock();
     var maxDistance = Math.pow( 120, 2 );
@@ -70,52 +73,53 @@
       return Math.pow( a[ 0 ] - b [0 ], 2 ) +  Math.pow( a[ 1 ] - b[ 1 ], 2 ) +  Math.pow( a[ 2 ] - b[ 2 ], 2 );
     };
     myTexture = myTexture.load('master.png', function(map) {
-      map.repeat.set(1/16, 1/(4096/170));
-      // map.repeat.set(1/32, 1/(8192/170));
+        //1/64 DOESN'T LOOK RIGHT FOR HEIGHT
+      map.repeat.set(1/64, 1/64);
       map.wrapS = map.wrapT = THREE.RepeatWrapping;
-      for(var p = 0; p < 10; p++) {
-        for(var i = 0; i < 7; i++) {
-          var x_offset = Math.random()*25-12;
-          var y_offset = Math.random()*25-12;
-          var z_offset = Math.random()*25-12;
 
-          for(var j = 0; j < 16; j++) {
-            if(i == 7 && j == 2) {
-              //This stopped overloading images
-              break;
-            } else {
+      for(var i = 0; i < 64; i++) {
+        var x_offset = Math.random()*50-25;
+        var y_offset = Math.random()*50-25;
+        var z_offset = Math.random()*50-25;
 
-              var tempTex = map.clone();
-              tempTex.uuid = map.uuid;
-              tempTex.version = map.version;
-              tempTex.needsUpdate = true;
-              var height = ((4096/170));
+        for(var j = 0; j < 64; j++) {
+          if(i == 17 && j == 38) {
+            //This stopped overloading images
+            break;
+          } else {
 
-              tempTex.wrapS = tempTex.wrapT = THREE.RepeatWrapping;
+            var tempTex = map.clone();
+            tempTex.uuid = map.uuid;
+            tempTex.version = map.version;
+            tempTex.needsUpdate = true;
+            var height = ((8192/150));
 
-
-              tempTex.offset.x = 1/16*j;
-              tempTex.offset.y = -1/(height)*(i+1);
-              // tempTex.offset.x = 1/32;//*j;
-              // tempTex.offset.y = -1/(height+1)*(i+1);
-              var material = new THREE.SpriteMaterial( {map: tempTex, color: 0xffffff, fog: true } );
-              sprite[sprite.length-1] = new THREE.Sprite(material);
-              sprite[sprite.length-1].scale.set(1,170/256,1);
-
-              sprite[sprite.length-1].position.z = Math.random()*10-5 + z_offset;
+            tempTex.wrapS = tempTex.wrapT = THREE.RepeatWrapping;
 
 
-              positions[(sprite.length-1)*3] = sprite[sprite.length-1].position.x = Math.random()*5-3 + x_offset;
-              positions[(sprite.length-1)*3+1] = sprite[sprite.length-1].position.y = Math.random()*5-3 + y_offset;
-              positions[(sprite.length-1)*3+2] = sprite[sprite.length-1].position.z = Math.random()*5-3 + z_offset;
+            tempTex.offset.x = 1/64*j;
+            tempTex.offset.y = -1/(height)*(i+1);
 
-              scene.add( sprite[sprite.length-1] );
+            var material = new THREE.SpriteMaterial( {map: tempTex, color: 0xffffff, fog: true } );
+            sprite[sprite.length-1] = new THREE.Sprite(material);
+            sprite[sprite.length-1].scale.set(1,150/124,1);
 
-            }
+
+
+            sprite[sprite.length-1].position.z = Math.random()*10-5 + z_offset;
+
+
+            positions[(sprite.length-1)*3] = sprite[sprite.length-1].position.x = Math.random()*10-5 + x_offset;
+            positions[(sprite.length-1)*3+1] = sprite[sprite.length-1].position.y = Math.random()*10-5 + y_offset;
+            positions[(sprite.length-1)*3+2] = sprite[sprite.length-1].position.z = Math.random()*10-5 + z_offset;
+
+            scene.add( sprite[sprite.length-1] );
 
           }
+
         }
       }
+
 
     });
 
@@ -127,40 +131,40 @@
 
 
     camera.position.z = 5;
+    var socket = io();
 
-    //
-    // //This is twisting motion
-    //
-    // // socket.on('accelX', function(msg){
-    // //   cube.rotation.x = msg/180*Math.PI,
-    // //   camera.rotation.x = msg/180*Math.PI
-    //
-    // // });
-    //
-    // //this is left to right
-    //
-    // socket.on('accelY', function(msg){
-    //   //cube.rotation.y = msg/180*Math.PI,
-    //   //camera.rotateY(-msg/180*Math.PI/10),
-    //   camera.rotation.y -= msg/180*Math.PI/10,
-    //   camera.rotation.z = 0
-    //
+    //This is twisting motion
+
+    // socket.on('accelX', function(msg){
+    //   cube.rotation.x = msg/180*Math.PI,
+    //   camera.rotation.x = msg/180*Math.PI
+
     // });
-    //
-    //
-    // //This is the tilting forwards motion
-    // var direction;
-    // socket.on('accelZ', function(msg) {
-    //
-    // });
-    //
-    // socket.on('height', function(msg){
-    //   //cube.rotation.z = msg/180*Math.PI*1.5,
-    //   //camera.position.z += msg/180,
-    //   direction = camera.getWorldDirection(),
-    //   camera.position.add( direction.multiplyScalar(-msg*5) ),
-    //   camera.rotation.z = 0;
-    // });
+
+    //this is left to right
+
+    socket.on('accelY', function(msg){
+      //cube.rotation.y = msg/180*Math.PI,
+      //camera.rotateY(-msg/180*Math.PI/10),
+      camera.rotation.y -= msg/180*Math.PI/10,
+      camera.rotation.z = 0
+
+    });
+
+
+    //This is the tilting forwards motion
+    var direction;
+    socket.on('accelZ', function(msg) {
+
+    });
+
+    socket.on('height', function(msg){
+      //cube.rotation.z = msg/180*Math.PI*1.5,
+      //camera.position.z += msg/180,
+      direction = camera.getWorldDirection(),
+      camera.position.add( direction.multiplyScalar(-msg*5) ),
+      camera.rotation.z = 0;
+    });
 
     var raycaster = new THREE.Raycaster();
     var mouse = new THREE.Vector2();
@@ -198,19 +202,12 @@
 
       requestAnimationFrame( animate );
       render();
-      controls.update( clock.getDelta() );
-      renderer.render( scene, camera );
-    }
-    function onWindowResize() {
-      camera.aspect = window.innerWidth / window.innerHeight;
-      camera.updateProjectionMatrix();
-      renderer.setSize( window.innerWidth, window.innerHeight );
-      controls.handleResize();
+
     }
     animate();
 
     function displayNearest( position ) {
-      var imagePositionsInRange = kdtree.nearest( [ 0, 0, 0 ], 100, maxDistance );
+var imagePositionsInRange = kdtree.nearest( [ 0, 0, 0 ], 100, maxDistance );
       //var imagePositionsInRange = kdtree.nearest( [ position.x, position.y, position.z ], 100, maxDistance );
       var _frustum = new THREE.Frustum();
       var _projScreenMatrix = new THREE.Matrix4();
@@ -222,16 +219,20 @@
         /*
         var objectPoint = new THREE.Vector3().fromArray( object[ 0 ].obj );
         if ( _frustum.containsPoint( objectPoint ) ) {
-        var objectIndex = object[ 0 ].pos;
-        // set the alpha according to distance
-        alphas[ objectIndex ] = 1.0 / maxDistance * object[ 1 ];
-        // update the attribute
-        _particleGeom.attributes.alpha.needsUpdate = true;
-      }*/
+          var objectIndex = object[ 0 ].pos;
+          // set the alpha according to distance
+          alphas[ objectIndex ] = 1.0 / maxDistance * object[ 1 ];
+          // update the attribute
+          _particleGeom.attributes.alpha.needsUpdate = true;
+        }*/
+      }
     }
-  }
 
   </script>
-</u1>
+  </u1>
+  <ul id="messages"></ul>
+  <form action="">
+    <input id="m" autocomplete="off" /><button>Send</button>
+  </form>
 </body>
 </html>

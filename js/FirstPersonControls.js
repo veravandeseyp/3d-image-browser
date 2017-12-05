@@ -101,17 +101,22 @@ THREE.FirstPersonControls = function ( object, domElement ) {
 		// }
 
 		// this.mouseDragOn = true;
-		this.moveForwardSpeed = event;
+					console.log(event);
+		if(event < 0.1 && event > -0.1) {
+			this.moveForwardSpeed = 0;
+		} else {
+			this.moveForwardSpeed = event/5;
+		}
 	};
 
 	this.onMouseUp = function ( event ) {
 		//this.mouseY = event*window.innerHeight/1000;
-			if(event < 15 && event > -15) {
+			if(event < 5 && event > -8) {
 				this.moveUpSpeed = 0;
 			} else {
-				this.moveUpSpeed = event/50;
+				this.moveUpSpeed = event/Math.abs(event)*event*(event/50)/50;
 			}
-		
+
 		// event.preventDefault();
 		// event.stopPropagation();
 
@@ -132,13 +137,13 @@ THREE.FirstPersonControls = function ( object, domElement ) {
 
 	this.onMouseMove = function ( event ) {
 			//this.mouseX = event*window.innerWidth/1000;
-			console.log(event);
-			if(event < 15 && event > -15) {
+
+			if(event < 5 && event > -5) {
 				this.moveSideSpeed = 0;
 			} else {
-				this.moveSideSpeed = event/50;
+				this.moveSideSpeed = event/Math.abs(event)*event*(event/50)/50;
 			}
-			
+
 			//this.object.translateX( event/100 );
 			//this.mouseY = event.pageY - this.viewHalfY;
 	};
@@ -216,7 +221,7 @@ THREE.FirstPersonControls = function ( object, domElement ) {
 		this.object.translateY(actualMoveSpeedY);
 		//this.object.translateZ(-(actualMoveSpeed + this.autoSpeedFactor));
 		//this.object.translateZ(this.moveForwardSpeed);
-		
+
 		// if ( this.moveForward || ( this.autoForward && ! this.moveBackward ) ) this.object.translateZ( - ( actualMoveSpeed + this.autoSpeedFactor ) );
 		// if ( this.moveBackward ) this.object.translateZ( actualMoveSpeed );
 
