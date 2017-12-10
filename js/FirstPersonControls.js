@@ -101,7 +101,7 @@ THREE.FirstPersonControls = function ( object, domElement ) {
 		// }
 
 		// this.mouseDragOn = true;
-					console.log(event);
+					//console.log(event);
 		if(event < 0.1 && event > -0.1) {
 			this.moveForwardSpeed = 0;
 		} else {

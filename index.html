@@ -23,7 +23,7 @@
     <script src="/OrbitControls.js"></script>
     <script src="FirstPersonControls.js"></script>
     <script>
-    var json
+    var json;
     var loader = new THREE.FileLoader();
 
 
@@ -89,7 +89,7 @@
         // output the text to the console
         //console.log( JSON.parse(data) );
         json = JSON.parse(data);
-        console.log(json);
+        //console.log(json);
         myTexture = myTexture.load('master.png', function(map) {
           map.repeat.set(1/json.setup.ximages, 1/(8192/json.setup.im_height));
           // map.repeat.set(1/32, 1/(8192/170));
@@ -214,55 +214,64 @@
         var offsety = intersects[ i ].object.material.map.offset.y;
 
         offsetx = offsetx * json.setup.ximages;
-        offsety = (offsety * (height) + 1)*-1;
-
+        offsety = Math.abs((offsety * (height) + 1)*-1);
+        console.log("xloc, yloc")
+        console.log(offsetx)
         console.log(offsety)
 
-
+        for(var j = 0; j < json.images.length; j++) {
+          //console.log(json.images[j]);
+          if(json.images[j].yloc == offsety && json.images[j].xloc == offsetx) {
+            console.log(json.images[j].filename);
+          }
+        }
       }
-      renderer.render( scene, camera );
-    }
 
-    //Animation loop of cube
-    function animate() {
-      displayNearest( camera.position );
 
-      requestAnimationFrame( animate );
-      render();
-      controls.update( clock.getDelta() );
-      renderer.render( scene, camera );
-    }
-    function onWindowResize() {
-      camera.aspect = window.innerWidth / window.innerHeight;
-      camera.updateProjectionMatrix();
-      renderer.setSize( window.innerWidth, window.innerHeight );
-      controls.handleResize();
-    }
-    animate();
 
-    function displayNearest( position ) {
-      var imagePositionsInRange = kdtree.nearest( [ 0, 0, 0 ], 100, maxDistance );
-      //var imagePositionsInRange = kdtree.nearest( [ position.x, position.y, position.z ], 100, maxDistance );
-      var _frustum = new THREE.Frustum();
-      var _projScreenMatrix = new THREE.Matrix4();
-      _projScreenMatrix.multiplyMatrices( camera.projectionMatrix, camera.matrixWorldInverse );
-      _frustum.setFromMatrix( _projScreenMatrix );
-      for ( var i = 0, il = imagePositionsInRange.length; i < il; i ++ ) {
-        var object = imagePositionsInRange[ i ];
-        //object.material.color.set(0xff0000);
-        /*
-        var objectPoint = new THREE.Vector3().fromArray( object[ 0 ].obj );
-        if ( _frustum.containsPoint( objectPoint ) ) {
-        var objectIndex = object[ 0 ].pos;
-        // set the alpha according to distance
-        alphas[ objectIndex ] = 1.0 / maxDistance * object[ 1 ];
-        // update the attribute
-        _particleGeom.attributes.alpha.needsUpdate = true;
-      }*/
     }
+    renderer.render( scene, camera );
+
+  //Animation loop of cube
+  function animate() {
+    displayNearest( camera.position );
+
+    requestAnimationFrame( animate );
+    render();
+    controls.update( clock.getDelta() );
+    renderer.render( scene, camera );
   }
+  function onWindowResize() {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize( window.innerWidth, window.innerHeight );
+    controls.handleResize();
+  }
+  animate();
 
-  </script>
+  function displayNearest( position ) {
+    var imagePositionsInRange = kdtree.nearest( [ 0, 0, 0 ], 100, maxDistance );
+    //var imagePositionsInRange = kdtree.nearest( [ position.x, position.y, position.z ], 100, maxDistance );
+    var _frustum = new THREE.Frustum();
+    var _projScreenMatrix = new THREE.Matrix4();
+    _projScreenMatrix.multiplyMatrices( camera.projectionMatrix, camera.matrixWorldInverse );
+    _frustum.setFromMatrix( _projScreenMatrix );
+    for ( var i = 0, il = imagePositionsInRange.length; i < il; i ++ ) {
+      var object = imagePositionsInRange[ i ];
+      //object.material.color.set(0xff0000);
+      /*
+      var objectPoint = new THREE.Vector3().fromArray( object[ 0 ].obj );
+      if ( _frustum.containsPoint( objectPoint ) ) {
+      var objectIndex = object[ 0 ].pos;
+      // set the alpha according to distance
+      alphas[ objectIndex ] = 1.0 / maxDistance * object[ 1 ];
+      // update the attribute
+      _particleGeom.attributes.alpha.needsUpdate = true;
+    }*/
+  }
+}
+
+</script>
 </u1>
 </body>
 </html>
