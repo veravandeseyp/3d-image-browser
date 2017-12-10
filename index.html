@@ -96,6 +96,69 @@
         // output the text to the console
         //console.log( JSON.parse(data) );
         json = JSON.parse(data);
+        var results = {};
+        var genre_names = []
+        results.genres = genre_names;
+        results.genres.push({genre: json.images[0].genre});
+
+        //Calculates number of unique genres
+        json.images.forEach(function(x) {
+          v = {genre: x.genre}
+          if(v.genre != results.genres[results.genres.length -1].genre) {
+            genre_names.push(v);
+            results.genres = genre_names;
+          } else {
+          }
+        });
+
+        //Gives numbers to the genres to search which sphere they belong to
+        console.log(results);
+        json.images.forEach(function(x) {
+          json.images[json.images.indexOf(x)].genre_number = results.genres.indexOf(x.genre);
+        });
+        console.log(json.images);
+
+        //Calculate Genre Spheres
+        var cluster_diameter = 25;
+        var image_distance = 10;
+        results.genres.forEach(function(x) {
+          center = new THREE.Vector3(0,0,0);
+          x.protosphere = new THREE.Sphere(center, cluster_diameter*2);
+        });
+
+        //Spaces the spheres
+        results.genres.forEach(function(x) {
+          results.genres.forEach(function(y) {
+            if(x.genre != y.genre) {
+              while(x.protosphere.containsPoint(y.protosphere.center)) {
+                y.protosphere.center.x++;
+
+              }
+            }
+          });
+        // var geometry = new THREE.SphereGeometry( cluster_diameter, 32, 32 );
+        // var material = new THREE.MeshBasicMaterial( {color: 0xffff00} );
+        // var sphere = new THREE.Mesh( geometry, material );
+        // sphere.position = x.protosphere.center;
+        // scene.add( sphere );
+        });
+        //console.log(results);
+
+        //Add Spike enumerations
+        for(var i = 0; i < json.images.length; i++) {
+          if(i == 0) {
+            var genre_count = 0;
+          } else if(json.images[i].genre != json.images[i-1].genre) {
+            var enum_count = 0;
+            genre_count++;
+            if(json.images[i].filename != json.images[i-1].filename) {
+              enum_count++;
+              json.images[i].spike = enum_count;
+            }
+          }
+        }
+
+
         //console.log(json);
         myTexture = myTexture.load('master.png', function(map) {
           map.repeat.set(1/json.setup.ximages, 1/(8192/json.setup.im_height));
@@ -126,15 +189,16 @@
                 var material = new THREE.SpriteMaterial( {map: tempTex, color: 0xffffff, fog: true } );
 
                 sprite.push(new THREE.Sprite(material));
-                console.log(sprite.length-1)
+                //console.log(sprite.length-1)
                 sprite[sprite.length-1].scale.set(1,json.setup.im_height/json.setup.im_width,1);
 
-
+                var sphere_belonging;
                 for(var k = 0; k < json.images.length; k++) {
                   //console.log(json.images[j]);
                   if(json.images[k].yloc == i && json.images[k].xloc == j) {
+                    // sphere_belonging = results.images[]
                     sprite[sprite.length-1].name = json.images[k].filename;
-                    console.log(sprite[sprite.length-1].name);
+                    //console.log(sprite[sprite.length-1].name);
                     break;
 
                   }
@@ -179,26 +243,23 @@
     }
 
     function render() {
-      //calc closest image
       var s_0 = sprite[0];
+      var s_1 = sprite[0];
       sprite.forEach(function(s) {
-        if(distance_function2(s, camera) <= distance_function2(s_0, camera))
-          s_0 = s;
+        //find closest to camera
+        if(distance_function2(s, camera) <= distance_function2(s_0, camera)) s_0 = s;
+        //Find closest to camera centre objects
+        if(hypot_distance(camera, s) <= hypot_distance(camera, s_1)) s_1 = s;
       });
-      console.log(s_0.name);
 
       // update the picking ray with the camera and mouse position
       raycaster.setFromCamera( mouse, camera );
       //calculate objects intersecting the picking ray
       var intersects = raycaster.intersectObjects( scene.children );
 
-      s_1 = sprite[0];
-      //Find closest to camera centre objects
-      sprite.forEach(function(s) {
-        if(hypot_distance(camera, s) <= hypot_distance(camera, s_1))
-          s_1 = s;
-      });
-      console.log(s_1.name)
+
+
+      //console.log(s_1.name)
 
       scene.children.forEach(function(item) {
         //item.material.color.set( 0xffffff );
@@ -221,14 +282,14 @@
         // offsety = Math.abs((offsety * (height) + 1)*-1);
         //
         //Calc image pointed to:
-        for(var j = 0; j < json.images.length; j++) {
-          //console.log(json.images[j]);
-          if(json.images[j].yloc == offsety && json.images[j].xloc == offsetx) {
-            //s_2 = json.images[j].filename;
-            //console.log(json.images[j].filename);
-            break;
-          }
-        }
+        // for(var j = 0; j < json.images.length; j++) {
+        //   //console.log(json.images[j]);
+        //   if(json.images[j].yloc == offsety && json.images[j].xloc == offsetx) {
+        //     //s_2 = json.images[j].filename;
+        //     //console.log(json.images[j].filename);
+        //     break;
+        //   }
+        // }
       }
 
 
@@ -299,7 +360,7 @@
     // }
     animate();
 
-  </script>
-</u1>
+    </script>
+  </u1>
 </body>
 </html>
