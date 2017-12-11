@@ -23,38 +23,18 @@
     <script src="/OrbitControls.js"></script>
     <script src="FirstPersonControls.js"></script>
     <script>
-    var json;
-    var loader = new THREE.FileLoader();
 
 
-    // $.getJSON("info.json", function(json_data) {
-    //         json = json_data;
-    //         console.log(json);
-    //     });
-    //Mouse Part
-    document.body.addEventListener("keydown", function() {
-      THREEx.FullScreen.request();
-    }, false);
-    var socket = io();
-    mouse = new THREE.Vector2();
-    accel = new THREE.Vector2();
-    var controls;
+    //Distance Functions:
+    var distance_function2 = function (a, b) {
+      return Math.pow(a.position.x - b.position.x , 2) + Math.pow(a.position.y - b.position.y , 2) + Math.pow(a.position.z - b.position.z , 2);
+    }
 
-    //gyro config
-    var scene = new THREE.Scene();
-    var camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
-    camera.updateProjectionMatrix();
+    var hypot_distance = function (a, b) {
+      return Math.pow(a.position.x - b.position.x, 2) + Math.pow(a.position.y - b.position.y, 2);
+    }
 
-    controls = new THREE.FirstPersonControls( camera );
-
-    controls.movementSpeed = 100;
-    controls.lookSpeed = 0.1;
-
-    var renderer = new THREE.WebGLRenderer({antialias:true});
-    renderer.setClearColor(0x000000, 1);
-    renderer.setSize( window.innerWidth, window.innerHeight );
-    document.body.appendChild( renderer.domElement );
-
+    //Listeners
     function onWindowResize() {
       camera.aspect = window.innerWidth / window.innerHeight;
       camera.updateProjectionMatrix();
@@ -62,39 +42,50 @@
       controls.handleResize();
     }
 
+    ///THree Init
+    var scene = new THREE.Scene();
+    var camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
     var ambientLight = new THREE.AmbientLight(0xffffff, 1.0);
+    var renderer = new THREE.WebGLRenderer({antialias:true});
+
+    camera.updateProjectionMatrix();
     scene.add(ambientLight);
-    var cube;
-    //Cube
-    var sprite = [];
-    var positions;// = new Float32Array(32*32*3);
-    var kdtree;
-    var clock = new THREE.Clock();
-    var maxDistance = Math.pow( 10, 2 );
+
     window.addEventListener( 'resize', onWindowResize, false );
+    renderer.setClearColor(0x000000, 1);
+    renderer.setSize( window.innerWidth, window.innerHeight );
+    document.body.appendChild( renderer.domElement );
+
+        //FPS Counter:
     javascript:(function(){var script=document.createElement('script');script.onload=function(){var stats=new Stats();document.body.appendChild(stats.dom);requestAnimationFrame(function loop(){stats.update();requestAnimationFrame(loop)});};script.src='//rawgit.com/mrdoob/stats.js/master/build/stats.min.js';document.head.appendChild(script);})()
+
+    //Comms init
+    var socket = io();
+
+    //Controls Init
+    var clock = new THREE.Clock();
+    mouse = new THREE.Vector2();
+    accel = new THREE.Vector2();
+    var controls;
+    controls = new THREE.FirstPersonControls( camera );
+    controls.movementSpeed = 100;
+    controls.lookSpeed = 0.1;
 
     console.log("Reading Texture");
     var myTexture = new THREE.TextureLoader()
 
-    var distanceFunction = function ( a, b ) {
-      return Math.pow( a[ 0 ] - b [0 ], 2 ) +  Math.pow( a[ 1 ] - b[ 1 ], 2 ) +  Math.pow( a[ 2 ] - b[ 2 ], 2 );
-    };
-
-    var distance_function2 = function (a, b) {
-      return Math.pow(a.position.x - b.position.x , 2) + Math.pow(a.position.y - b.position.y , 2) + Math.pow(a.position.z - b.position.z , 2);
-    }
-
+    //Page Setup:
+    var sprite = [];
+    var json;
+    var loader = new THREE.FileLoader();
 
     loader.load(
       // resource URL
       'info.json',
-
       // Function when resource is loaded
       function ( data ) {
         var full_counter = 0;
         // output the text to the console
-        //console.log( JSON.parse(data) );
         json = JSON.parse(data);
         var results = {};
         var genre_names = []
@@ -111,21 +102,17 @@
           }
         });
 
-        //Gives numbers to the genres to search which sphere they belong to
-        console.log(results);
-        json.images.forEach(function(x) {
-          json.images[json.images.indexOf(x)].genre_number = results.genres.indexOf(x.genre);
-        });
-        console.log(json.images);
-
         //Calculate Genre Spheres
         var cluster_diameter = 25;
         var image_distance = 10;
+        ;
         results.genres.forEach(function(x) {
           center = new THREE.Vector3(0,0,0);
           x.protosphere = new THREE.Sphere(center, cluster_diameter*2);
         });
 
+
+        //console.log(json.images);
         //Spaces the spheres
         results.genres.forEach(function(x) {
           results.genres.forEach(function(y) {
@@ -136,28 +123,69 @@
               }
             }
           });
-        // var geometry = new THREE.SphereGeometry( cluster_diameter, 32, 32 );
-        // var material = new THREE.MeshBasicMaterial( {color: 0xffff00} );
-        // var sphere = new THREE.Mesh( geometry, material );
-        // sphere.position = x.protosphere.center;
-        // scene.add( sphere );
         });
-        //console.log(results);
+
+        json.images.forEach(function(x) {
+          results.genres.forEach(function(y) {
+            if(y.genre == x.genre) {
+              json.images[json.images.indexOf(x)].genre_number = results.genres.indexOf(y);
+              json.images[json.images.indexOf(x)].sphere = y.protosphere;
+            }
+          });
+        })
 
         //Add Spike enumerations
+        var enum_count;
+        var genre_count;
+
+        //THIS IS Not working!
         for(var i = 0; i < json.images.length; i++) {
           if(i == 0) {
-            var genre_count = 0;
+            genre_count = 0;
+            enum_count = 0;
+            json.images[i].spike = enum_count;
+            joint_name = json.images[i].fname + json.images[i].lname;
+            json.images[i].jname = joint_name;
+            //Genre Changed
           } else if(json.images[i].genre != json.images[i-1].genre) {
-            var enum_count = 0;
+            enum_count = 0;
             genre_count++;
-            if(json.images[i].filename != json.images[i-1].filename) {
+          }
+
+          if(i != 0) {
+            joint_name = json.images[i].fname + json.images[i].lname;
+            json.images[i].jname = joint_name;
+            l_joint_name = json.images[i-1].fname + json.images[i-1].lname;
+            if(joint_name != l_joint_name) {
               enum_count++;
               json.images[i].spike = enum_count;
             }
           }
         }
+        console.log(json.images);
 
+        //Star mechanism
+        var last_spike = 0;
+        var image_sep = 5;
+        for(var i = 0; i < json.images.length; i++) {
+          var max_spikes = 0;
+          var j = i;
+          while(max_spikes < json.images[j].spike) {
+            max_spikes = json.images[j].spike;
+            j++;
+          }
+          var angle = 360/(max_spikes+1);
+          angle = json.images[i].spike*angle;
+
+          json.images[i].star_offsetx = image_sep*Math.sin(angle)*last_spike;
+          json.images[i].star_offsety = image_sep*Math.cos(angle)*last_spike;
+
+          if(last_spike == max_spikes) {
+            last_spike = 0;
+          } else {
+            last_spike++;
+          }
+        }
 
         //console.log(json);
         myTexture = myTexture.load('master.png', function(map) {
@@ -166,10 +194,6 @@
           map.wrapS = map.wrapT = THREE.RepeatWrapping;
           positions = new Float32Array(json.setup.yimages*json.setup.ximages*3)
           for(var i = 0; i < json.setup.yimages; i++) {
-            var x_offset = Math.random()*25-12;
-            var y_offset = Math.random()*25-12;
-            var z_offset = Math.random()*25-12;
-
             for(var j = 0; j < json.setup.ximages; j++) {
               if(i == json.setup.yimages-1 && j == json.setup.ypartial) {
                 //This stopped overloading images
@@ -196,24 +220,19 @@
                 for(var k = 0; k < json.images.length; k++) {
                   //console.log(json.images[j]);
                   if(json.images[k].yloc == i && json.images[k].xloc == j) {
+
+                    // json.images[k].genre
                     // sphere_belonging = results.images[]
                     sprite[sprite.length-1].name = json.images[k].filename;
                     //console.log(sprite[sprite.length-1].name);
+                    sprite[sprite.length-1].position.x = json.images[k].sphere.center.x + json.images[k].start_offsetx;
+                    sprite[sprite.length-1].position.y = json.images[k].sphere.center.y + json.images[k].start_offsety;
+                    sprite[sprite.length-1].position.z = json.images[k].sphere.center.z + 0;
+
                     break;
 
                   }
                 }
-
-                sprite[sprite.length-1].position.x = Math.random()*5-3 + x_offset;
-                sprite[sprite.length-1].position.y = Math.random()*5-3 + y_offset;
-                sprite[sprite.length-1].position.z = Math.random()*5-3 + z_offset;
-
-
-                // positions[full_counter*3+0] = sprite[sprite.length-1].position.x;
-                // positions[full_counter*3+1] = sprite[sprite.length-1].position.y;
-                // positions[full_counter*3+2] = sprite[sprite.length-1].position.z;
-
-                //console.log(positions[full_counter]);
                 full_counter += 1;
                 scene.add( sprite[sprite.length-1] );
 
@@ -222,10 +241,6 @@
             }
 
           }
-          // console.log("Building tree");
-          // var measureStart = new Date().getTime();
-          // kdtree = new THREE.TypedArrayUtils.Kdtree( positions, distanceFunction, 3 );
-          // console.log( 'TIME building kdtree', new Date().getTime() - measureStart );
         });
       },
     );
@@ -234,13 +249,9 @@
 
     var raycaster = new THREE.Raycaster();
     var mouse = new THREE.Vector2();
-    mouse.x = 0;
-    mouse.y = 0;
+    mouse.x = 0; //Set for middle of screen
+    mouse.y = 0;  //Set for middle of screen
 
-
-    var hypot_distance = function (a, b) {
-      return Math.pow(a.position.x - b.position.x, 2) + Math.pow(a.position.y - b.position.y, 2);
-    }
 
     function render() {
       var s_0 = sprite[0];
@@ -257,12 +268,7 @@
       //calculate objects intersecting the picking ray
       var intersects = raycaster.intersectObjects( scene.children );
 
-
-
-      //console.log(s_1.name)
-
       scene.children.forEach(function(item) {
-        //item.material.color.set( 0xffffff );
         item.scale.x = 1;
         item.scale.y = 1;
 
@@ -273,7 +279,6 @@
         //intersects[ i ].object.material.color.set( 0xff0000 );
         // intersects[ i ].object.scale.x = 2;
         // intersects[ i ].object.scale.y = 2;
-        //console.log(intersects[ i ].object)
         s_2 = intersects[ i ].object;
         // var offsetx = intersects[ i ].object.material.map.offset.x;
         // var offsety = intersects[ i ].object.material.map.offset.y;
@@ -286,7 +291,6 @@
         //   //console.log(json.images[j]);
         //   if(json.images[j].yloc == offsety && json.images[j].xloc == offsetx) {
         //     //s_2 = json.images[j].filename;
-        //     //console.log(json.images[j].filename);
         //     break;
         //   }
         // }
@@ -299,65 +303,10 @@
 
     //Animation loop of cube
     function animate() {
-      if(kdtree != null) {
-        displayNearest( camera.position );
-      }
       requestAnimationFrame( animate );
       render();
       controls.update( clock.getDelta() );
-      //renderer.render( scene, camera );
     }
-
-
-
-    //Find nearest object infront of player
-
-    // function displayNearest( position ) {
-    //   var closestObject;
-    //   var imagePositionsInRange = kdtree.nearest( [ 0, 0, 0 ], 20, maxDistance );
-    //   var imagePositionsInRange = kdtree.nearest( [ position.x, position.y, position.z ], 20, maxDistance );
-    //   var _frustum = new THREE.Frustum();
-    //   var _projScreenMatrix = new THREE.Matrix4();
-    //   _projScreenMatrix.multiplyMatrices( camera.projectionMatrix, camera.matrixWorldInverse );
-    //   _frustum.setFromMatrix( _projScreenMatrix );
-    //   for ( var i = 0, il = imagePositionsInRange.length; i < il; i ++ ) {
-    //     var object = imagePositionsInRange[ i ];
-    //
-    //     var objectPoint = new THREE.Vector3().fromArray( object[ 0 ].obj );
-    //
-    //     if ( _frustum.containsPoint( objectPoint ) ) {
-    //       var objectIndex = Math.floor(object[ 0 ].pos/3.0);
-    //
-    //       console.log(objectIndex)
-    //       // set the alpha according to distance
-    //       // if(closestObject == null) {
-    //       //   closestObject = sprite[objectIndex];
-    //       // } else {// if(Math.abs(objectPoint.z-camera.position.z) < Math.abs(closestObject.position.z-camera.position.z)) {
-    //       //   closestObject = sprite[objectIndex];
-    //       //
-    //       //   //Calc index and filename
-    //       //   var height = ((8192/json.setup.im_height));
-    //       //   var offsetx = closestObject.material.map.offset.x;
-    //       //   var offsety = closestObject.material.map.offset.y;
-    //       //
-    //       //   offsetx = offsetx * json.setup.ximages;
-    //       //   offsety = Math.abs((offsety * (height) + 1)*-1);
-    //       //   //console.log(offsetx);
-    //       //   //console.log(json.images[j]);
-    //       //   for(var j = 0; j < json.images.length; j++) {
-    //       //
-    //       //     if(json.images[j].yloc == offsety && json.images[j].xloc == offsetx) {
-    //       //       console.log(json.images[j].filename);
-    //       //       break;
-    //       //     }
-    //       //   }
-    //       // }
-    //     }
-    //     //alphas[ objectIndex ] = 1.0 / maxDistance * object[ 1 ];
-    //     // update the attribute
-    //     //_particleGeom.attributes.alpha.needsUpdate = true;
-    //   }
-    // }
     animate();
 
     </script>

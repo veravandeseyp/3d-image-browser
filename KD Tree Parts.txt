@@ -1,0 +1,79 @@
+          // console.log("Building tree");
+          // var measureStart = new Date().getTime();
+          // kdtree = new THREE.TypedArrayUtils.Kdtree( positions, distanceFunction, 3 );
+          // console.log( 'TIME building kdtree', new Date().getTime() - measureStart );
+                // positions[full_counter*3+0] = sprite[sprite.length-1].position.x;
+                // positions[full_counter*3+1] = sprite[sprite.length-1].position.y;
+                // positions[full_counter*3+2] = sprite[sprite.length-1].position.z;
+    //KD Tree
+    //var maxDistance = Math.pow( 10, 2 ); //Unused
+    //var positions; //Point cloud, unused
+    //var kdtree; //unused
+
+    var distanceFunction = function ( a, b ) {
+      return Math.pow( a[ 0 ] - b [0 ], 2 ) +  Math.pow( a[ 1 ] - b[ 1 ], 2 ) +  Math.pow( a[ 2 ] - b[ 2 ], 2 );
+    };
+
+
+
+
+    //Find nearest object infront of player
+
+
+  // function displayNearest( position ) {
+    //   var closestObject;
+    //   var imagePositionsInRange = kdtree.nearest( [ 0, 0, 0 ], 20, maxDistance );
+    //   var imagePositionsInRange = kdtree.nearest( [ position.x, position.y, position.z ], 20, maxDistance );
+    //   var _frustum = new THREE.Frustum();
+    //   var _projScreenMatrix = new THREE.Matrix4();
+    //   _projScreenMatrix.multiplyMatrices( camera.projectionMatrix, camera.matrixWorldInverse );
+    //   _frustum.setFromMatrix( _projScreenMatrix );
+    //   for ( var i = 0, il = imagePositionsInRange.length; i < il; i ++ ) {
+    //     var object = imagePositionsInRange[ i ];
+    //
+    //     var objectPoint = new THREE.Vector3().fromArray( object[ 0 ].obj );
+    //
+    //     if ( _frustum.containsPoint( objectPoint ) ) {
+    //       var objectIndex = Math.floor(object[ 0 ].pos/3.0);
+    //
+    //       console.log(objectIndex)
+    //       // set the alpha according to distance
+    //       // if(closestObject == null) {
+    //       //   closestObject = sprite[objectIndex];
+    //       // } else {// if(Math.abs(objectPoint.z-camera.position.z) < Math.abs(closestObject.position.z-camera.position.z)) {
+    //       //   closestObject = sprite[objectIndex];
+    //       //
+    //       //   //Calc index and filename
+    //       //   var height = ((8192/json.setup.im_height));
+    //       //   var offsetx = closestObject.material.map.offset.x;
+    //       //   var offsety = closestObject.material.map.offset.y;
+    //       //
+    //       //   offsetx = offsetx * json.setup.ximages;
+    //       //   offsety = Math.abs((offsety * (height) + 1)*-1);
+    //       //   //console.log(offsetx);
+    //       //   //console.log(json.images[j]);
+    //       //   for(var j = 0; j < json.images.length; j++) {
+    //       //
+    //       //     if(json.images[j].yloc == offsety && json.images[j].xloc == offsetx) {
+    //       //       console.log(json.images[j].filename);
+    //       //       break;
+    //       //     }
+    //       //   }
+    //       // }
+    //     }
+    //     //alphas[ objectIndex ] = 1.0 / maxDistance * object[ 1 ];
+    //     // update the attribute
+    //     //_particleGeom.attributes.alpha.needsUpdate = true;
+    //   }
+    // }
+
+
+    function animate() {
+      if(kdtree != null) {
+        displayNearest( camera.position );
+      }
+      requestAnimationFrame( animate );
+      render();
+      controls.update( clock.getDelta() );
+      //renderer.render( scene, camera );
+    }

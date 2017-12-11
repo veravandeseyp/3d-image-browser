@@ -1,0 +1,7 @@
+
+                // sprite[sprite.length-1].position.x = Math.random()*5-3 + x_offset;
+                // sprite[sprite.length-1].position.y = Math.random()*5-3 + y_offset;
+                // sprite[sprite.length-1].position.z = Math.random()*5-3 + z_offset;
+            // var x_offset = Math.random()*25-12;
+            // var y_offset = Math.random()*25-12;
+            // var z_offset = Math.random()*25-12;
