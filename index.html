@@ -105,87 +105,87 @@
         //Calculate Genre Spheres
         var cluster_diameter = 25;
         var image_distance = 10;
-        ;
-        results.genres.forEach(function(x) {
-          center = new THREE.Vector3(0,0,0);
-          x.protosphere = new THREE.Sphere(center, cluster_diameter*2);
-        });
 
-
-        //console.log(json.images);
-        //Spaces the spheres
-        results.genres.forEach(function(x) {
-          results.genres.forEach(function(y) {
-            if(x.genre != y.genre) {
-              while(x.protosphere.containsPoint(y.protosphere.center)) {
-                y.protosphere.center.x++;
-
-              }
-            }
-          });
-        });
-
-        json.images.forEach(function(x) {
-          results.genres.forEach(function(y) {
-            if(y.genre == x.genre) {
-              json.images[json.images.indexOf(x)].genre_number = results.genres.indexOf(y);
-              json.images[json.images.indexOf(x)].sphere = y.protosphere;
-            }
-          });
-        })
-
-        //Add Spike enumerations
-        var enum_count;
-        var genre_count;
-
-        //THIS IS Not working!
-        for(var i = 0; i < json.images.length; i++) {
-          if(i == 0) {
-            genre_count = 0;
-            enum_count = 0;
-            json.images[i].spike = enum_count;
-            joint_name = json.images[i].fname + json.images[i].lname;
-            json.images[i].jname = joint_name;
-            //Genre Changed
-          } else if(json.images[i].genre != json.images[i-1].genre) {
-            enum_count = 0;
-            genre_count++;
-          }
-
-          if(i != 0) {
-            joint_name = json.images[i].fname + json.images[i].lname;
-            json.images[i].jname = joint_name;
-            l_joint_name = json.images[i-1].fname + json.images[i-1].lname;
-            if(joint_name != l_joint_name) {
-              enum_count++;
-              json.images[i].spike = enum_count;
-            }
-          }
-        }
-        console.log(json.images);
-
-        //Star mechanism
-        var last_spike = 0;
-        var image_sep = 5;
-        for(var i = 0; i < json.images.length; i++) {
-          var max_spikes = 0;
-          var j = i;
-          while(max_spikes < json.images[j].spike) {
-            max_spikes = json.images[j].spike;
-            j++;
-          }
-          var angle = 360/(max_spikes+1);
-          angle = json.images[i].spike*angle;
-
-          json.images[i].star_offsetx = image_sep*Math.sin(angle)*last_spike;
-          json.images[i].star_offsety = image_sep*Math.cos(angle)*last_spike;
-
-          if(last_spike == max_spikes) {
-            last_spike = 0;
-          } else {
-            last_spike++;
-          }
-        }
+        // results.genres.forEach(function(x) {
+        //   center = new THREE.Vector3(0,0,0);
+        //   x.protosphere = new THREE.Sphere(center, cluster_diameter*2);
+        // });
+        //
+        //
+        // //console.log(json.images);
+        // //Spaces the spheres
+        // results.genres.forEach(function(x) {
+        //   results.genres.forEach(function(y) {
+        //     if(x.genre != y.genre) {
+        //       while(x.protosphere.containsPoint(y.protosphere.center)) {
+        //         y.protosphere.center.x++;
+        //
+        //       }
+        //     }
+        //   });
+        // });
+        //
+        // json.images.forEach(function(x) {
+        //   results.genres.forEach(function(y) {
+        //     if(y.genre == x.genre) {
+        //       json.images[json.images.indexOf(x)].genre_number = results.genres.indexOf(y);
+        //       json.images[json.images.indexOf(x)].sphere = y.protosphere;
+        //     }
+        //   });
+        // })
+        //
+        // //Add Spike enumerations
+        // var enum_count;
+        // var genre_count;
+        //
+        // //THIS IS Not working!
+        // for(var i = 0; i < json.images.length; i++) {
+        //   if(i == 0) {
+        //     genre_count = 0;
+        //     enum_count = 0;
+        //     json.images[i].spike = enum_count;
+        //     joint_name = json.images[i].fname + json.images[i].lname;
+        //     json.images[i].jname = joint_name;
+        //     //Genre Changed
+        //   } else if(json.images[i].genre != json.images[i-1].genre) {
+        //     enum_count = 0;
+        //     genre_count++;
+        //   }
+        //
+        //   if(i != 0) {
+        //     joint_name = json.images[i].fname + json.images[i].lname;
+        //     json.images[i].jname = joint_name;
+        //     l_joint_name = json.images[i-1].fname + json.images[i-1].lname;
+        //     if(joint_name != l_joint_name) {
+        //       enum_count++;
+        //       json.images[i].spike = enum_count;
+        //     }
+        //   }
+        // }
+        // console.log(json.images);
+        //
+        // //Star mechanism
+        // var last_spike = 0;
+        // var image_sep = 5;
+        // for(var i = 0; i < json.images.length; i++) {
+        //   var max_spikes = 0;
+        //   var j = i;
+        //   while(max_spikes < json.images[j].spike) {
+        //     max_spikes = json.images[j].spike;
+        //     j++;
+        //   }
+        //   var angle = 360/(max_spikes+1);
+        //   angle = json.images[i].spike*angle;
+        //
+        //   json.images[i].star_offsetx = image_sep*Math.sin(angle)*last_spike;
+        //   json.images[i].star_offsety = image_sep*Math.cos(angle)*last_spike;
+        //
+        //   if(last_spike == max_spikes) {
+        //     last_spike = 0;
+        //   } else {
+        //     last_spike++;
+        //   }
+        // }
 
         //console.log(json);
         myTexture = myTexture.load('master.png', function(map) {
@@ -194,6 +194,9 @@
           map.wrapS = map.wrapT = THREE.RepeatWrapping;
           positions = new Float32Array(json.setup.yimages*json.setup.ximages*3)
           for(var i = 0; i < json.setup.yimages; i++) {
+            var x_offset = Math.random()*25-12;
+            var y_offset = Math.random()*25-12;
+            var z_offset = Math.random()*25-12;
             for(var j = 0; j < json.setup.ximages; j++) {
               if(i == json.setup.yimages-1 && j == json.setup.ypartial) {
                 //This stopped overloading images
@@ -225,14 +228,18 @@
                     // sphere_belonging = results.images[]
                     sprite[sprite.length-1].name = json.images[k].filename;
                     //console.log(sprite[sprite.length-1].name);
-                    sprite[sprite.length-1].position.x = json.images[k].sphere.center.x + json.images[k].start_offsetx;
-                    sprite[sprite.length-1].position.y = json.images[k].sphere.center.y + json.images[k].start_offsety;
-                    sprite[sprite.length-1].position.z = json.images[k].sphere.center.z + 0;
+                    // sprite[sprite.length-1].position.x = json.images[k].sphere.center.x + json.images[k].start_offsetx;
+                    // sprite[sprite.length-1].position.y = json.images[k].sphere.center.y + json.images[k].start_offsety;
+                    // sprite[sprite.length-1].position.z = json.images[k].sphere.center.z + 0;
 
                     break;
 
                   }
                 }
+
+                sprite[sprite.length-1].position.x = Math.random()*5-3 + x_offset;
+                sprite[sprite.length-1].position.y = Math.random()*5-3 + y_offset;
+                sprite[sprite.length-1].position.z = Math.random()*5-3 + z_offset;
                 full_counter += 1;
                 scene.add( sprite[sprite.length-1] );
 
